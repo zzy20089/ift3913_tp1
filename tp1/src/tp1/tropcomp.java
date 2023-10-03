@@ -11,36 +11,44 @@ import java.util.Map;
 
 public class tropcomp {
 	public static void main(String[] args) {
-	        if (args.length < 1 || args.length > 3) {
-	            System.out.println("format incorrect");
+	        if (args.length < 1 || args.length > 4) {
+	            System.out.println("format suggere : tls <seuil> -o <chemin-à-la-sortie.csv> <chemin-de-l'entrée>");
 	            System.exit(1);
 	        }
 	        String cheminEntre = null;
 	        String sortie = null;
-
-	        for (int i = 0; i < args.length; i++) {
-	            if (args[i].equals("-o") && i + 1 < args.length) {
-	                sortie = args[i + 1];
-	                i++; // Passer au prochain argument
-	            } else {
-	            	cheminEntre = args[i];
-	            }
-	        }
-	        
-	        File dossier = new File(cheminEntre);
-	        File[] fichiersDeTest = dossier.listFiles((dir, name) -> name.toLowerCase().endsWith("test.java"));
-	        
-	        Map<String, Double> tcmpMap = new HashMap<>();
-	        for (File fichierDeTest : fichiersDeTest) {
-	            String nomClasse = getNomDeLaClasse(fichierDeTest.getName());
-	            int tloc = tp1.tloc.calculerTLOC(fichierDeTest.toString());
-	            int tassert = tp1.tassert.calculerTASSERT(fichierDeTest.toString());
-	            double tcmp = (double) tloc / tassert;
-	            tcmpMap.put(nomClasse, tcmp);
-	        }
-	        
 	        //seuil par defaut est 10%
 	        double seuil = 10.0;
+
+	        if(args.length==1) {
+	        	cheminEntre = args[0];
+	        }
+	        
+	        if(args.length==2) {
+	        	seuil=Integer.parseInt(args[0]);
+	        	cheminEntre = args[1];
+	        }
+	        if(args.length==3) {
+	        	cheminEntre = args[2];
+	        	sortie = args[1]+"\\reponse"+seuil+".csv";
+	        }
+	        
+	        if(args.length==4) {
+	        	seuil=Integer.parseInt(args[0]);
+	        	cheminEntre = args[3];
+	        	sortie = args[2]+"\\reponse"+seuil+".csv";
+	        }
+	        
+	        
+	        
+	        File dossier = new File(cheminEntre);
+	        
+	        Map<String, Double> tcmpMap = new HashMap<>();
+	        
+	        collecterTous(dossier, tcmpMap);
+	        
+	        
+	        
 	        
 	        List<String> classesSuspectes = trouverClassesSuspectes(tcmpMap, seuil);
 	        
@@ -58,9 +66,30 @@ public class tropcomp {
 	            } catch (IOException e) {
 	                System.out.println("Erreur lors de l'écriture dans le fichier de sortie : " + e.getMessage());
 	            }
+	        	
 	        }
 	        
 	}
+	
+	private static void collecterTous(File dossier, Map<String, Double> tcmpMap) {
+        File[] fichiersDeTest = dossier.listFiles((dir, name) -> name.toLowerCase().endsWith("test.java"));
+
+        for (File fichierDeTest : fichiersDeTest) {
+            String nomClasse = getNomDeLaClasse(fichierDeTest.getName());
+            int tloc = tp1.tloc.calculerTLOC(fichierDeTest.toString());
+            int tassert = tp1.tassert.calculerTASSERT(fichierDeTest.toString());
+            double tcmp = (double) tloc / tassert;
+            tcmpMap.put(nomClasse, tcmp);
+        }
+
+        // lire les sous dossiers
+        File[] sousDossiers = dossier.listFiles(File::isDirectory);
+        if (sousDossiers != null) {
+            for (File sousDossier : sousDossiers) {
+            	collecterTous(sousDossier, tcmpMap);
+            }
+        }
+    }
 	
 	private static List<String> trouverClassesSuspectes(Map<String, Double> tcmpMap, double seuil) {
         List<String> classesSuspectes = new ArrayList<>();
