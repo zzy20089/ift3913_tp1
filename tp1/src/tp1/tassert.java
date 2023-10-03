@@ -17,7 +17,7 @@ public class tassert {
         System.out.println(calculerTASSERT(args[0]));
     }
 
-	private static int calculerTASSERT(String fichierSource) {
+	public static int calculerTASSERT(String fichierSource) {
 		
 		int tassert = 0;
 		List<String> listA =Arrays.asList("assertArrayEquals", "assertEquals","assertFalse","assertNotEquals",

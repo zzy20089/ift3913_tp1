@@ -15,7 +15,9 @@ public class tloc {
         System.out.println(calculerTLOC(args[0]));
     }
 
-	private static int calculerTLOC(String fichierSource) {
+	
+		
+	public static int calculerTLOC(String fichierSource) {
 		
 		int tloc = 0;
 
@@ -55,5 +57,10 @@ public class tloc {
         return tloc;
 	}
 	
-	
 }
+
+
+
+		
+	
+
