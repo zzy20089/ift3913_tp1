@@ -44,13 +44,14 @@ public class tropcomp {
 	        File dossier = new File(cheminEntre);
 	        
 	        Map<String, Double> tcmpMap = new HashMap<>();
+	        Map<String, Double> tlocMap = new HashMap<>();
 	        
-	        collecterTous(dossier, tcmpMap);
+	        collecterTous(dossier, tcmpMap, tlocMap);
 	        
 	        
 	        
 	        
-	        List<String> classesSuspectes = trouverClassesSuspectes(tcmpMap, seuil);
+	        List<String> classesSuspectes = trouverClassesSuspectes(tcmpMap,tlocMap, seuil);
 	        
 	        if (sortie == null) {
 	            // Sortie sur la ligne de commande
@@ -71,7 +72,7 @@ public class tropcomp {
 	        
 	}
 	
-	private static void collecterTous(File dossier, Map<String, Double> tcmpMap) {
+	private static void collecterTous(File dossier, Map<String, Double> tcmpMap,  Map<String, Double> tlocMap) {
         File[] fichiersDeTest = dossier.listFiles((dir, name) -> name.toLowerCase().endsWith("test.java"));
 
         for (File fichierDeTest : fichiersDeTest) {
@@ -80,27 +81,39 @@ public class tropcomp {
             int tassert = tp1.tassert.calculerTASSERT(fichierDeTest.toString());
             double tcmp = (double) tloc / tassert;
             tcmpMap.put(nomClasse, tcmp);
+            tlocMap.put(nomClasse, (double) tloc);
         }
 
         // lire les sous dossiers
         File[] sousDossiers = dossier.listFiles(File::isDirectory);
         if (sousDossiers != null) {
             for (File sousDossier : sousDossiers) {
-            	collecterTous(sousDossier, tcmpMap);
+            	collecterTous(sousDossier, tcmpMap, tlocMap);
             }
         }
     }
 	
-	private static List<String> trouverClassesSuspectes(Map<String, Double> tcmpMap, double seuil) {
-        List<String> classesSuspectes = new ArrayList<>();
+	private static List<String> trouverClassesSuspectes(Map<String, Double> tcmpMap,Map<String, Double> tlocMap, double seuil) {
+        List<String> classesSuspectes1 = new ArrayList<>();
+        List<String> classesSuspectes2 = new ArrayList<>();
+        List<String> classesSuspectesF = new ArrayList<>();
         int nombreClasses = tcmpMap.size();
 
         tcmpMap.entrySet().stream()
                 .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
                 .limit((long) (nombreClasses * seuil / 100))
-                .forEach(entry -> classesSuspectes.add(entry.getKey()));
+                .forEach(entry -> classesSuspectes1.add(entry.getKey()));
+        tcmpMap.entrySet().stream()
+        		.sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+        		.limit((long) (nombreClasses * seuil / 100))
+        		.forEach(entry -> classesSuspectes2.add(entry.getKey()));
+        for (String str : classesSuspectes1) {
+            if (classesSuspectes2.contains(str)) {
+            	classesSuspectesF.add(str);
+            }
+        }
 
-        return classesSuspectes;
+        return classesSuspectesF;
     }
 
 	private static String getNomDeLaClasse(String nomFichier) {

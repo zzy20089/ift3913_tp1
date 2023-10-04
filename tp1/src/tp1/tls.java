@@ -22,7 +22,7 @@ public class tls {
 
 	        for (int i = 0; i < args.length; i++) {
 	            if (args[i].equals("-o") && i + 1 < args.length) {
-	                sortie = args[i + 1];
+	                sortie = args[i + 1]+"\\reponse";
 	                i++; // passer au prochain argument
 	            } else {
 	                cheminDossier = args[i];
